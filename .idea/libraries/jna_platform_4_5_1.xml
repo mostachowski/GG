@@ -1,0 +1,18 @@
+<component name="libraryTable">
+  <library name="jna-platform-4.5.1">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/jar/jna-platform-4.5.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/jar/tess4j-3.4.3.jar!/" />
+      <root url="jar://$PROJECT_DIR$/jar/lept4j-1.6.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/jar/logback-core-1.2.3.jar!/" />
+      <root url="jar://$PROJECT_DIR$/jar/jul-to-slf4j-1.7.25.jar!/" />
+      <root url="jar://$PROJECT_DIR$/jar/log4j-1.2.17.jar!/" />
+      <root url="jar://$PROJECT_DIR$/jar/log4j-over-slf4j-1.7.25.jar!/" />
+      <root url="jar://$PROJECT_DIR$/jar/logback-classic-1.2.3.jar!/" />
+      <root url="file://$PROJECT_DIR$/jar" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+    <jarDirectory url="file://$PROJECT_DIR$/jar" recursive="false" />
+  </library>
+</component>
