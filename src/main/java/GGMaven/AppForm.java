@@ -3,6 +3,7 @@ package GGMaven;
 import desktopScan.desktopManager;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -13,6 +14,9 @@ public class AppForm {
     private JButton createTemplatesButton;
     private JButton createHeroCardTemplatesButton;
     private JButton readPotButton;
+    private JButton prepareBtnTemplatesButton;
+    private JButton prepareActionBtnsButton;
+    private JButton recognizeImageButton;
     private JButton screenShotButton;
 
     public AppForm() {
@@ -44,8 +48,35 @@ public class AppForm {
         readPotButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 desktopManager manager = new desktopManager();
-               String pot = manager.readPot();
-               JOptionPane.showMessageDialog(null,pot);
+                String pot = manager.readPot();
+                JOptionPane.showMessageDialog(null, pot);
+            }
+        });
+        prepareBtnTemplatesButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                desktopManager manager = new desktopManager();
+                manager.createButtonsTemplate("/screenshots2");
+            }
+        });
+        prepareActionBtnsButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                desktopManager manager = new desktopManager();
+                manager.createActionsTemplate("/screenshots2");
+
+            }
+        });
+
+        recognizeImageButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+
+                final Frame f= new Frame();
+                FileDialog dialog=  new FileDialog(f,"Choose File",FileDialog.LOAD);
+
+                dialog.setVisible(true);
+                final String filename =dialog.getDirectory()  + dialog.getFile();
+                JOptionPane.showMessageDialog(null, filename);
+
+
             }
         });
     }

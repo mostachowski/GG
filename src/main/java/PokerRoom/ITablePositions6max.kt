@@ -14,4 +14,22 @@ interface ITablePositions6max {
     val HeroCard2: Rectangle
 
     val Pot: Rectangle
+    val Position1Bet: Rectangle
+    val Position2Bet: Rectangle
+    val Position3Bet: Rectangle
+    val Position4Bet: Rectangle
+    val Position5Bet: Rectangle
+
+    val Button1: Rectangle
+    val Button2: Rectangle
+    val Button3: Rectangle
+    val Button4: Rectangle
+    val Button5: Rectangle
+    val Button6: Rectangle
+
+    val FoldRect: Rectangle
+    val CallCheckRect: Rectangle
+    val RaiseRect: Rectangle
+
+
 }
