@@ -1,11 +1,18 @@
 package GGMaven;
 
+import PokerClasses.ActionToTake;
+import PokerRoom.GGTableFilePaths;
+import PokerRoom.GGTablePositions6max;
 import desktopScan.desktopManager;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
 public class AppForm {
     private JPanel panelMain;
@@ -23,7 +30,7 @@ public class AppForm {
 
         button1.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                desktopManager manager = new desktopManager();
+                desktopManager manager = new desktopManager(new GGTableFilePaths(),new GGTablePositions6max());
                 manager.doScreenShotsOfActiveWindowInLoop();
             }
         });
@@ -34,33 +41,33 @@ public class AppForm {
         });
         createTemplatesButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                desktopManager manager = new desktopManager();
+                desktopManager manager = new desktopManager(new GGTableFilePaths(),new GGTablePositions6max());
                 manager.createBoardTemplateFromDirectory("/screenshots");
 
             }
         });
         createHeroCardTemplatesButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                desktopManager manager = new desktopManager();
+                desktopManager manager = new desktopManager(new GGTableFilePaths(),new GGTablePositions6max());
                 manager.createHeroTemplateFromDictionary("/screenshots");
             }
         });
         readPotButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                desktopManager manager = new desktopManager();
+                desktopManager manager = new desktopManager(new GGTableFilePaths(),new GGTablePositions6max());
                 String pot = manager.readPot();
                 JOptionPane.showMessageDialog(null, pot);
             }
         });
         prepareBtnTemplatesButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                desktopManager manager = new desktopManager();
+                desktopManager manager = new desktopManager(new GGTableFilePaths(),new GGTablePositions6max());
                 manager.createButtonsTemplate("/screenshots2");
             }
         });
         prepareActionBtnsButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                desktopManager manager = new desktopManager();
+                desktopManager manager = new desktopManager(new GGTableFilePaths(),new GGTablePositions6max());
                 manager.createActionsTemplate("/screenshots2");
 
             }
@@ -74,7 +81,17 @@ public class AppForm {
 
                 dialog.setVisible(true);
                 final String filename =dialog.getDirectory()  + dialog.getFile();
-                JOptionPane.showMessageDialog(null, filename);
+                File file = new File(filename);
+                try {
+                    BufferedImage img = ImageIO.read(file);
+                    desktopManager manager = new desktopManager(new GGTableFilePaths(),new GGTablePositions6max());
+                   ActionToTake result = manager.takeDecision(img);
+                   String msg = result.getAction().toString() + result.getAmount();
+                    JOptionPane.showMessageDialog(null, msg);
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+
 
 
             }

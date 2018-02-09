@@ -31,5 +31,8 @@ interface ITablePositions6max {
     val CallCheckRect: Rectangle
     val RaiseRect: Rectangle
 
+    val Width: Int
+    val Height: Int
+
 
 }

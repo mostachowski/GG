@@ -1,8 +1,12 @@
 package desktopScan
 
+import PokerClasses.ActionToTake
+import PokerClasses.HoldemHand
+import PokerClasses.ImageTemplates
 import PokerClasses.Position
 import PokerRoom.GGTableFilePaths
 import PokerRoom.GGTablePositions6max
+import PokerRoom.ITableFilePaths
 import PokerRoom.ITablePositions6max
 import net.sourceforge.tess4j.Tesseract
 import net.sourceforge.tess4j.TesseractException
@@ -13,6 +17,7 @@ import java.io.File
 import javax.imageio.ImageIO
 import com.sun.awt.SecurityWarning.getSize
 import java.awt.image.DataBuffer
+import java.util.HashMap
 
 
 class desktopManager {
@@ -20,6 +25,27 @@ class desktopManager {
 
     val keepDoingScreenshot = true
     var counter = 0
+    var filePaths: ITableFilePaths? = null
+    var tablePositions: ITablePositions6max? = null;
+
+    constructor(paths: ITableFilePaths, positions: ITablePositions6max) {
+        tablePositions = positions
+        filePaths = paths
+    }
+
+    fun takeDecision(image: BufferedImage): ActionToTake {
+        var constants = GGTablePositions6max()
+        var windowManager = WindowManager()
+
+        if (!windowManager.Scale(image, constants.Width, constants.Height))
+            return ActionToTake()
+
+
+        var position = getPosition(image, constants)
+
+        return ActionToTake()
+    }
+
 
     fun doScreenShotsOfActiveWindowInLoop(): IntArray? {
         var manager = WindowManager()
@@ -39,10 +65,6 @@ class desktopManager {
 
 
         return manager.GetForeGroundWindowRect()
-    }
-
-    fun saySomething(): kotlin.String {
-        return "What is up?"
     }
 
     fun createBoardTemplateFromDirectory(dir: String) {
@@ -142,55 +164,82 @@ class desktopManager {
         return img!!.getSubimage(wholeCard1.x, wholeCard1.y, wholeCard1.width, wholeCard1.height)
     }
 
+    private fun getSimilirarityPercent(img1: BufferedImage?, img2: BufferedImage?): Double {
 
-    fun ParseImage(imgPath: String) {
-        var positions = GGTablePositions6max()
-        var image = ImageIO.read(File(imgPath))
-        var position = getPosition(image, positions)
-
-    }
-
-
-    fun compareImage(biA: BufferedImage, biB: BufferedImage): Float {
-
-        var percentage = 0f
-        try {
-            // take buffer data from both image files //
-
-            val dbA = biA.data.dataBuffer
-            val sizeA = dbA.size
-            val dbB = biB.data.dataBuffer
-            val sizeB = dbB.size
-            var count = 0
-            // compare data-buffer objects //
-            if (sizeA == sizeB) {
-
-                for (i in 0..sizeA - 1) {
-
-                    if (dbA.getElem(i) == dbB.getElem(i)) {
-                        count = count + 1
-                    }
-
-                }
-                percentage = (count * 100 / sizeA).toFloat()
-            } else {
-                println("Both the images are not of same size")
-            }
-
-        } catch (e: Exception) {
-            println("Failed to compare image files ...")
+        if (img1 == null || img2 == null)
+            return (-1).toDouble()
+        val width = img1.width
+        val height = img1.height
+        val width2 = img2.width
+        val height2 = img2.height
+        if (width != width2 || height != height2) {
+            throw IllegalArgumentException(String.format("Images must have the same dimensions: (%d,%d) vs. (%d,%d)", width, height, width2, height2))
         }
 
-        return percentage
+        var diff: Long = 0
+        for (y in 0..height - 1) {
+            for (x in 0..width - 1) {
+                diff += pixelDiff(img1.getRGB(x, y), img2.getRGB(x, y)).toLong()
+            }
+        }
+        val maxDiff = 3L * 255 * width.toLong() * height.toLong()
+
+        return 1 - 100.0 * diff / maxDiff
+    }
+
+    private fun pixelDiff(rgb1: Int, rgb2: Int): Int {
+        val r1 = rgb1 shr 16 and 0xff
+        val g1 = rgb1 shr 8 and 0xff
+        val b1 = rgb1 and 0xff
+        val r2 = rgb2 shr 16 and 0xff
+        val g2 = rgb2 shr 8 and 0xff
+        val b2 = rgb2 and 0xff
+        return Math.abs(r1 - r2) + Math.abs(g1 - g2) + Math.abs(b1 - b2)
     }
 
     private fun getPosition(img: BufferedImage, position: ITablePositions6max): Position {
 
-        var bufferedImage1 = cutOfTheImage(img, position.Button1)
-        var template1 = ImageIO.read(File(GGTableFilePaths().Btn1Path))
 
-        if (compareImage(bufferedImage1, template1) > 0.8)
-            return Position.Button
-        return Position.CutOff
+        ImageTemplates.initialize(filePaths)
+
+        var templates = ImageTemplates.getButtonTemplates()
+
+        var cuttedImg = cutOfTheImage(img, position.Button4)
+        var similarity = getSimilirarityPercent(cuttedImg, templates[Position.BigBlind])
+        if (similarity > 0.8) return Position.BigBlind
+
+         cuttedImg = cutOfTheImage(img, position.Button5)
+         similarity = getSimilirarityPercent(cuttedImg, templates[Position.SmallBlind])
+         if (similarity > 0.8) return Position.SmallBlind
+
+        cuttedImg = cutOfTheImage(img, position.Button6)
+        similarity = getSimilirarityPercent(cuttedImg, templates[Position.Button])
+        if (similarity > 0.8) return Position.Button
+
+        cuttedImg = cutOfTheImage(img, position.Button1)
+        similarity = getSimilirarityPercent(cuttedImg, templates[Position.CutOff])
+        if (similarity > 0.8) return Position.CutOff
+
+        cuttedImg = cutOfTheImage(img, position.Button2)
+        similarity = getSimilirarityPercent(cuttedImg, templates[Position.Hj])
+        if (similarity > 0.8) return Position.Hj
+
+        cuttedImg = cutOfTheImage(img, position.Button3)
+        similarity = getSimilirarityPercent(cuttedImg, templates[Position.Mp])
+        if (similarity > 0.8) return Position.Mp
+
+       return Position.None
     }
+
+    private fun readHeroCard(img:BufferedImage,position: ITablePositions6max): HoldemHand?
+    {
+
+        ImageTemplates.initialize(filePaths)
+
+        var templates = ImageTemplates.getButtonTemplates()
+
+        return null
+    }
+
+
 }

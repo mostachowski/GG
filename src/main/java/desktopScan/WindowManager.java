@@ -7,6 +7,10 @@ import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.WinDef.HWND;
 
 import com.sun.jna.ptr.PointerByReference;
+import com.sun.org.apache.xpath.internal.operations.Bool;
+
+import java.awt.*;
+import java.awt.image.BufferedImage;
 
 public class WindowManager {
     private static final int MAX_TITLE_LENGTH = 1024;
@@ -18,6 +22,37 @@ public class WindowManager {
         GetWindowRect(GetForegroundWindow(),rect);
 
         return rect;
+    }
+
+    public Boolean Scale(BufferedImage image, int width, int height)
+    {
+        if (width/height != image.getWidth()/image.getHeight())
+        return false;
+
+        if (width != image.getWidth())
+        {
+            image = toBufferedImage( image.getScaledInstance(width,height, Image.SCALE_DEFAULT));
+        }
+        return true;
+    }
+
+    private  BufferedImage toBufferedImage(Image img)
+    {
+        if (img instanceof BufferedImage)
+        {
+            return (BufferedImage) img;
+        }
+
+        // Create a buffered image with transparency
+        BufferedImage bimage = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+
+        // Draw the image on to the buffered image
+        Graphics2D bGr = bimage.createGraphics();
+        bGr.drawImage(img, 0, 0, null);
+        bGr.dispose();
+
+        // Return the buffered image
+        return bimage;
     }
 
 
