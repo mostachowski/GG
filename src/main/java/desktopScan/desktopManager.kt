@@ -43,8 +43,10 @@ class desktopManager {
 
         var position = getPosition(image, constants)
 
+        var heroHand = readHeroCard()
         return ActionToTake()
     }
+
 
 
     fun doScreenShotsOfActiveWindowInLoop(): IntArray? {
@@ -236,9 +238,12 @@ class desktopManager {
 
         ImageTemplates.initialize(filePaths)
 
-        var templates = ImageTemplates.getButtonTemplates()
+        var templates = ImageTemplates.getHeroCardsTemplates()
+
+                //TODO
 
         return null
+
     }
 
 
