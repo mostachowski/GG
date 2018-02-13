@@ -1,9 +1,6 @@
 package desktopScan
 
-import PokerClasses.ActionToTake
-import PokerClasses.HoldemHand
-import PokerClasses.ImageTemplates
-import PokerClasses.Position
+import PokerClasses.*
 import PokerRoom.GGTableFilePaths
 import PokerRoom.GGTablePositions6max
 import PokerRoom.ITableFilePaths
@@ -18,6 +15,9 @@ import javax.imageio.ImageIO
 import com.sun.awt.SecurityWarning.getSize
 import java.awt.image.DataBuffer
 import java.util.HashMap
+import jdk.nashorn.internal.objects.NativeArray.forEach
+import com.sun.jna.platform.win32.Netapi32Util.User
+import java.util.stream.Collectors
 
 
 class desktopManager {
@@ -43,10 +43,9 @@ class desktopManager {
 
         var position = getPosition(image, constants)
 
-        var heroHand = readHeroCard()
+        var heroHand = readHeroCard(image,constants)
         return ActionToTake()
     }
-
 
 
     fun doScreenShotsOfActiveWindowInLoop(): IntArray? {
@@ -175,7 +174,7 @@ class desktopManager {
         val width2 = img2.width
         val height2 = img2.height
         if (width != width2 || height != height2) {
-            throw IllegalArgumentException(String.format("Images must have the same dimensions: (%d,%d) vs. (%d,%d)", width, height, width2, height2))
+            return 0.0
         }
 
         var diff: Long = 0
@@ -186,7 +185,7 @@ class desktopManager {
         }
         val maxDiff = 3L * 255 * width.toLong() * height.toLong()
 
-        return 1 - 100.0 * diff / maxDiff
+        return 1.0 -  diff / maxDiff
     }
 
     private fun pixelDiff(rgb1: Int, rgb2: Int): Int {
@@ -210,9 +209,9 @@ class desktopManager {
         var similarity = getSimilirarityPercent(cuttedImg, templates[Position.BigBlind])
         if (similarity > 0.8) return Position.BigBlind
 
-         cuttedImg = cutOfTheImage(img, position.Button5)
-         similarity = getSimilirarityPercent(cuttedImg, templates[Position.SmallBlind])
-         if (similarity > 0.8) return Position.SmallBlind
+        cuttedImg = cutOfTheImage(img, position.Button5)
+        similarity = getSimilirarityPercent(cuttedImg, templates[Position.SmallBlind])
+        if (similarity > 0.8) return Position.SmallBlind
 
         cuttedImg = cutOfTheImage(img, position.Button6)
         similarity = getSimilirarityPercent(cuttedImg, templates[Position.Button])
@@ -230,20 +229,36 @@ class desktopManager {
         similarity = getSimilirarityPercent(cuttedImg, templates[Position.Mp])
         if (similarity > 0.8) return Position.Mp
 
-       return Position.None
+        return Position.None
     }
 
-    private fun readHeroCard(img:BufferedImage,position: ITablePositions6max): HoldemHand?
-    {
+
+    private fun readHeroCard(img: BufferedImage, position: ITablePositions6max): HoldemHand? {
 
         ImageTemplates.initialize(filePaths)
 
         var templates = ImageTemplates.getHeroCardsTemplates()
 
-                //TODO
+        var heroCard1 = cutOfTheImage(img, position.HeroCard1)
+        var heroCard2 = cutOfTheImage(img, position.HeroCard2)
 
-        return null
 
+        var first = templates.asSequence().firstOrNull({ u -> getSimilirarityPercent(heroCard1, u.value) > 0.8 })
+        //  val filtered = templates.stream().filter({ u -> u.age > 30 }).collect(Collectors.toList<T>())
+
+        var second = templates.asSequence().firstOrNull({ u -> getSimilirarityPercent(heroCard2, u.value) > 0.8 })
+
+        var card = templates.asSequence().first({u->u.key.cardType == CardEnum.Ace && u.key.colour == CardColour.Spade})
+
+
+        ImageIO.write(heroCard2, "png", File("/cut.png"))
+        ImageIO.write(card.value, "png", File("/sample.png"))
+
+        var test = getSimilirarityPercent(heroCard2,card.value)
+        if (first == null || second == null)
+            return null
+
+        return HoldemHand(first.key, second.key)
     }
 
 
