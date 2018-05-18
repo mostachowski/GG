@@ -43,8 +43,10 @@ class desktopManager {
 
         var position = getPosition(image, constants)
 
-        var heroHand = readHeroCard(image,constants)
-        return ActionToTake()
+        var heroHand = readHeroCard(image, constants)
+        var res = ActionToTake()
+        res.Hand = heroHand
+        return res
     }
 
 
@@ -183,9 +185,9 @@ class desktopManager {
                 diff += pixelDiff(img1.getRGB(x, y), img2.getRGB(x, y)).toLong()
             }
         }
-        val maxDiff = 3L * 255 * width.toLong() * height.toLong()
+        val maxDiff = width.toLong() * height.toLong()
 
-        return 1.0 -  diff / maxDiff
+        return 1.0 - (diff.toDouble() / maxDiff.toDouble())
     }
 
     private fun pixelDiff(rgb1: Int, rgb2: Int): Int {
@@ -195,7 +197,13 @@ class desktopManager {
         val r2 = rgb2 shr 16 and 0xff
         val g2 = rgb2 shr 8 and 0xff
         val b2 = rgb2 and 0xff
-        return Math.abs(r1 - r2) + Math.abs(g1 - g2) + Math.abs(b1 - b2)
+
+        return if (Math.abs(r1 + g1 + b1 - r2 - g2 - b2) < 55)
+            0
+        else
+            1
+
+        //return Math.abs(r1 - r2) + Math.abs(g1 - g2) + Math.abs(b1 - b2)
     }
 
     private fun getPosition(img: BufferedImage, position: ITablePositions6max): Position {
@@ -206,10 +214,13 @@ class desktopManager {
         var templates = ImageTemplates.getButtonTemplates()
 
         var cuttedImg = cutOfTheImage(img, position.Button4)
+
+
         var similarity = getSimilirarityPercent(cuttedImg, templates[Position.BigBlind])
         if (similarity > 0.8) return Position.BigBlind
 
         cuttedImg = cutOfTheImage(img, position.Button5)
+
         similarity = getSimilirarityPercent(cuttedImg, templates[Position.SmallBlind])
         if (similarity > 0.8) return Position.SmallBlind
 
@@ -235,6 +246,9 @@ class desktopManager {
 
     private fun readHeroCard(img: BufferedImage, position: ITablePositions6max): HoldemHand? {
 
+        var card1: Card? = null
+        var card2: Card? = null
+
         ImageTemplates.initialize(filePaths)
 
         var templates = ImageTemplates.getHeroCardsTemplates()
@@ -242,24 +256,29 @@ class desktopManager {
         var heroCard1 = cutOfTheImage(img, position.HeroCard1)
         var heroCard2 = cutOfTheImage(img, position.HeroCard2)
 
+        var map = HashMap<Card, Double>()
 
-        var first = templates.asSequence().firstOrNull({ u -> getSimilirarityPercent(heroCard1, u.value) > 0.8 })
-        //  val filtered = templates.stream().filter({ u -> u.age > 30 }).collect(Collectors.toList<T>())
+        templates.asSequence().forEach { u -> map.put(u.key, getSimilirarityPercent(heroCard1, u.value)) }
+        var candidate = map.toList().sortedByDescending { (_, value) -> value }.first()
 
-        var second = templates.asSequence().firstOrNull({ u -> getSimilirarityPercent(heroCard2, u.value) > 0.8 })
+        if (candidate.second > 0.93)
+            card1 = candidate.first
 
-        var card = templates.asSequence().first({u->u.key.cardType == CardEnum.Ace && u.key.colour == CardColour.Spade})
 
+        map = HashMap<Card, Double>()
+
+        templates.asSequence().forEach { u -> map.put(u.key, getSimilirarityPercent(heroCard2, u.value)) }
+        var candidate2 = map.toList().sortedByDescending { (_, value) -> value }.first()
 
         ImageIO.write(heroCard2, "png", File("/cut.png"))
-        ImageIO.write(card.value, "png", File("/sample.png"))
+        ImageIO.write(templates.asSequence().first{x->x.key.colour == CardColour.Spade && x.key.cardType == CardEnum.Queen}.value, "png", File("/sample.png"))
 
-        var test = getSimilirarityPercent(heroCard2,card.value)
-        if (first == null || second == null)
-            return null
+        if (candidate2.second > 0.8)
+            card2 = candidate2.first
 
-        return HoldemHand(first.key, second.key)
+        if (card1 != null && card2 != null)
+            return HoldemHand(card1, card2)
+
+        return null
     }
-
-
 }

@@ -2,8 +2,9 @@ package PokerClasses
 
 class ActionToTake {
 
-    val  Action : ActionEnum = ActionEnum.None
-    val Amount : Float = 0F
+    var  Action : ActionEnum = ActionEnum.None
+    var Amount : Float = 0F
+    var Hand : HoldemHand? = null
 
 
 }

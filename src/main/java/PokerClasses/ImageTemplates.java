@@ -93,9 +93,28 @@ public final class ImageTemplates {
         dictionary.put(new Card(CardEnum.King, CardColour.Spade), ImageIO.read(new File(_positions.getSkHero())));
         dictionary.put(new Card(CardEnum.Ace, CardColour.Spade), ImageIO.read(new File(_positions.getSaHero())));
 
+
+        for (BufferedImage item:
+             dictionary.values()) {
+
+            item =  RemoveWhiteLines(item);
+        }
         return dictionary;
     }
 
+    private static BufferedImage RemoveWhiteLines(BufferedImage item) {
+
+
+        for (int y = 0 ;y<item.getWidth();y++) {
+            Boolean isWhite = true;
+            for (int x = 0;x<item.getHeight();x++) {
+
+
+            }
+        }
+
+        return null;
+    }
 
 
     public static HashMap<Position, BufferedImage> getButtonTemplates() throws IOException {
